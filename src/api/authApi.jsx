@@ -1,5 +1,5 @@
 import { useAppStore } from "@/store"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 
@@ -38,6 +38,7 @@ export const useSignUp = ()=>{
 
 export const useLogin = ()=>{
     const {setUserInfo} = useAppStore()
+    const queryClient = useQueryClient()
     const navigate = useNavigate()
     const LoginUser = async (user)=>{
         const res = await fetch(`${API_BASE_URL}/api/auth/login`,{
@@ -58,16 +59,41 @@ export const useLogin = ()=>{
         mutationFn:LoginUser,
         onSuccess:(data)=>{
           setUserInfo(data.message)
-        if(data.message.profileSetup){
-            navigate("/chat")
-        }else{
-            navigate("/profile")
-        }
-        
+         queryClient.invalidateQueries({queryKey:["getUserInfo"]})
+         navigate("/chat")
         },
         onError:(error)=>{
             toast.error(error.message)
         }
     })
     return {Login,isPending}
+}
+
+export const useLogout = ()=>{
+    const { setUserInfo } = useAppStore()
+     const queryClient = useQueryClient()
+     const LogoutUser = async ()=>{
+          const res = await fetch(`${API_BASE_URL}/api/auth/logout`,{
+             method:"POST",
+             credentials:"include"
+          })
+          const data = await res.json()
+          if(!res.ok){
+             throw new Error(data.message)
+          }
+          return data
+     }
+
+     const {mutateAsync:Logout} = useMutation({
+        mutationFn:LogoutUser,
+        onSuccess:()=>{
+            queryClient.invalidateQueries({queryKey:["getUserInfo"]})
+            setUserInfo(null)
+            toast.success("Logout successfully")
+        },
+        onError:(error)=>{
+            toast.error(error)
+        }
+     })
+     return {Logout}
 }

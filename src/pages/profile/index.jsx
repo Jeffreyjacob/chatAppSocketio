@@ -7,7 +7,7 @@ import { FaPlus, FaTrash } from "react-icons/fa";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { useUpdateProfile } from "@/api/userApi";
+import { API_BASE_URL, useProfileImage, useRemoveProfileImage, useUpdateProfile } from "@/api/userApi";
 import { useNavigate } from "react-router-dom";
 
 
@@ -21,6 +21,8 @@ const Index = () => {
   const [selectedColor, setSelectedColor] = useState(0);
   const {UpdateUser,isPending} = useUpdateProfile()
   const fileInputRef = useRef(null)
+  const {newImageUpdate} = useProfileImage()
+  const {removeImage} = useRemoveProfileImage()
 
   const validateProfile = ()=>{
       if(!firstName){
@@ -45,15 +47,18 @@ const Index = () => {
   }
 
   useEffect(()=>{
-    if(userInfo.message.profileSetup){
-      setFirstName(userInfo.message.firstName)
-      setLastName(userInfo.message.lastName)
-      setSelectedColor(userInfo.message.color)
+    if(userInfo.profileSetup){
+      setFirstName(userInfo?.firstName)
+      setLastName(userInfo?.lastName)
+      setSelectedColor(userInfo?.color)
+    }
+    if(userInfo?.image){
+      setImage(`${API_BASE_URL}/${userInfo?.image}`)
     }
   },[userInfo])
 
    const handleNavigate = ()=>{
-     if(userInfo.message.profileSetup){
+     if(userInfo?.profileSetup){
        navigate("/chat")
      }else{
        toast.error("Please setup profile")
@@ -69,7 +74,7 @@ const Index = () => {
       if(file){
         const formdata = new FormData();
          formdata.append("profile-image",file);
-        //  const response = await 
+         await newImageUpdate(formdata)
         
         const reader = new FileReader();
         reader.onload = ()=>{
@@ -81,7 +86,8 @@ const Index = () => {
    };
 
    const handleDeleteImage = async()=>{
-    
+      await removeImage()
+      setImage("")
    }
   return (
     <div className="bg-[#1b1c24] h-[100vh] flex items-center justify-center flex-col gap-10">
@@ -99,8 +105,8 @@ const Index = () => {
                   alt="profile"
                   className=" object-cover w-full bg-black" /> : (
                   <div className={`uppercase h-32 w-32 md:h-48 md:w-48 text-5xl border-[1px] flex items-center justify-center rounded-full ${getColor(selectedColor)}`}>
-                    {firstName ? firstName.split("").shift() :
-                      userInfo.message.email.split("").shift()}
+                    {firstName ? firstName?.split("").shift() :
+                      userInfo?.email.split("").shift()}
                   </div>
                 )
               }
@@ -124,7 +130,7 @@ const Index = () => {
           <div className="flex min-w-32 md:min-w-64 flex-col gap-5 text-white items-center justify-center">
             <div className="w-full">
               <Input placeholder="Email" disabled 
-              value={userInfo.message.email}
+              value={userInfo?.email}
               className="rounded-lg p-6 bg-[#2c2e3b] border-none"/>
             </div>
             <div className="w-full">

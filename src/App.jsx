@@ -11,13 +11,13 @@ import ProtectedRoutes from "./ProtectedRoutes";
 
 
 function App() {
-  const {setUserInfo,isAuthenticated} = useAppStore();
-  const {UserInfos,isLoading} = useUserInfo()
-  console.log(UserInfos)
+  const {setUserInfo,userInfo} = useAppStore();
+  const {UserInfos,isLoading,isRefetching,refetch} = useUserInfo()
   useEffect(()=>{
-     setUserInfo(UserInfos)
-  },[setUserInfo,UserInfos])
-  if(isLoading){
+    refetch()
+     setUserInfo(UserInfos?.message)
+  },[setUserInfo,UserInfos,refetch])
+  if(isLoading || isRefetching){
     return (
       <div className="bg-primary-primarybackground w-full min-h-screen flex justify-center items-center">
         <Loader2 className=" animate-spin w-7 h-7 text-primary-primaryText"/>
@@ -27,7 +27,7 @@ function App() {
   return (
    <BrowserRouter>
       <Routes>
-        <Route path="/auth" element={isAuthenticated? <Navigate to="/chat"/> :<Auth/>}/>
+        <Route path="/auth" element={userInfo? <Navigate to="/chat"/> :<Auth/>}/>
         <Route element={<ProtectedRoutes/>}>
         <Route path="/chat" element={<Chat/>}/>
         <Route path="/profile" element={<Profile/>}/>
