@@ -23,3 +23,23 @@ export const useGetMessage = ()=>{
     })
     return {getMessages,isSuccess}
 }
+
+export const useUploadImage = ()=>{
+   const UploadImage = async (formData)=>{
+        const res = await fetch(`${API_BASE_URL}/api/message/uploadChatImage`,{
+          method:"POST",
+          credentials:"include",
+          body:formData
+        })
+        const data = await res.json()
+        if(!res.ok){
+          throw new Error(data.message)
+        }
+        return data
+   }
+
+   const {mutateAsync:upload,isSuccess} = useMutation({
+     mutationFn:UploadImage
+   })
+   return {upload,isSuccess}
+}
