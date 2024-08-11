@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQuery } from "@tanstack/react-query"
 import { API_BASE_URL } from "./userApi"
 
 export const useSearchContact = ()=>{
@@ -22,4 +22,25 @@ export const useSearchContact = ()=>{
         mutationFn:SearchContact
     })
     return {searchcontact,isSuccess}
+}
+
+
+export const useGetContactsDM = ()=>{
+     const GetContact = async ()=>{
+         const res = await fetch(`${API_BASE_URL}/api/contact/getContactsForDm`,{
+            method:"GET",
+            credentials:"include"
+         })
+         const data = await res.json()
+         if(!res.ok){
+            throw new Error(data.message)
+         }
+         return data
+     }
+
+     const {data:getContactsDm} = useQuery({
+        queryKey:["getContact"],
+        queryFn:GetContact
+     })
+     return {getContactsDm}
 }
