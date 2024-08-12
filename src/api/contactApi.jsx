@@ -44,3 +44,23 @@ export const useGetContactsDM = ()=>{
      })
      return {getContactsDm}
 }
+
+export const useGetAllContacts = ()=>{
+    const GetAllContacts = async ()=>{
+       const res = await fetch(`${API_BASE_URL}/api/contact/getAllContact`,{
+            method:"GET",
+            credentials:"include"
+       })
+       const data = await res.json()
+       if(!res.ok){
+         throw new Error(data.message)
+       }
+       return data
+    }
+
+    const {data:getAllContacts,isLoading} = useQuery({
+       queryKey:["getAllContacts"],
+       queryFn:GetAllContacts
+    })
+   return {getAllContacts,isLoading}
+}

@@ -1,5 +1,8 @@
 import { useMutation } from "@tanstack/react-query";
 import { API_BASE_URL } from "./userApi"
+import { useSocket } from "@/context/SocketContent";
+import { useAppStore } from "@/store";
+import axios from "axios";
 
 export const useGetMessage = ()=>{
     const GetMessages = async (recipientId)=>{
@@ -25,21 +28,39 @@ export const useGetMessage = ()=>{
 }
 
 export const useUploadImage = ()=>{
+  const socket = useSocket()
+  const {setIsUploading,selectedChatType,
+         selectedChatData,userInfo,setFileUploadingProgress} = useAppStore()
    const UploadImage = async (formData)=>{
-        const res = await fetch(`${API_BASE_URL}/api/message/uploadChatImage`,{
-          method:"POST",
-          credentials:"include",
-          body:formData
+        const res = await axios.post(`${API_BASE_URL}/api/message/uploadChatImage`,formData,{
+          withCredentials:true,
+          onUploadProgress:(data)=>{
+            setFileUploadingProgress(Math.round(100 * data.loaded / data.total))
+          }
         })
-        const data = await res.json()
-        if(!res.ok){
-          throw new Error(data.message)
-        }
-        return data
+        if (res.status < 200 || res.status >= 300) {
+          throw new Error(res.data.message || 'File upload failed');
+       }
+        return res.data
    }
 
    const {mutateAsync:upload,isSuccess} = useMutation({
-     mutationFn:UploadImage
+     mutationFn:UploadImage,
+     onSuccess:(data)=>{
+      setIsUploading(false)
+      if(selectedChatType === "contact"){
+        socket.emit("sendMessage",{
+            sender:userInfo.id,
+            content:undefined,
+            recipient:selectedChatData._id,
+            messageType:"file",
+            fileUrl:data.filePath
+        })
+      }
+     },
+     onError:()=>{
+       setIsUploading(false)
+     }
    })
    return {upload,isSuccess}
 }

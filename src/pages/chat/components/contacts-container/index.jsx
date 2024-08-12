@@ -1,5 +1,6 @@
 import { useGetContactsDM } from "@/api/contactApi";
 import ContactList from "@/components/shared/ContactList";
+import CreateChannel from "@/components/shared/CreateChannel";
 import NewDm from "@/components/shared/New-Dm";
 import ProfileInfo from "@/components/shared/Profile-Info";
 import { useAppStore } from "@/store";
@@ -28,6 +29,7 @@ const ContactContainer = () => {
       <div className="my-5">
         <div className="flex items-center justify-between pr-10">
           <Title text="Channels" />
+          <CreateChannel/>
         </div>
       </div>
       <ProfileInfo/>

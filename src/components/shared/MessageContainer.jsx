@@ -14,7 +14,8 @@ const MessageContainer = () => {
   const scrollRef = useRef();
   const {getMessages} = useGetMessage()
   const { selectedChatType, selectedChatData, 
-    selectedChatMessage, setSelectedChatMessgae
+    selectedChatMessage, setSelectedChatMessgae,
+    setIsDownloading,setFileDownloadingProgress
   } = useAppStore()
   const [showFullImage,setShowFullImage] = useState(false);
   const [imageUrl,setImageUrl] = useState(null);
@@ -62,7 +63,16 @@ const MessageContainer = () => {
     })
   };
      const downLoadFile = async (url)=>{
-         const response = await axios.get(`${API_BASE_URL}/${url}`,{responseType:"blob"})
+          setIsDownloading(true)
+          setFileDownloadingProgress(0)
+         const response = await axios.get(`${API_BASE_URL}/${url}`,
+          {responseType:"blob",
+            onDownloadProgress:(data)=>{
+               const {loaded,total} = data
+               const percentCompleted = Math.round((loaded *100)/total)
+               setFileDownloadingProgress(percentCompleted)
+            }
+          })
          const urlBlob = window.URL.createObjectURL(response.data);
          const link = document.createElement("a");
          link.href = urlBlob;
@@ -71,6 +81,8 @@ const MessageContainer = () => {
          link.click();
          link.remove();
          window.URL.revokeObjectURL(urlBlob);
+         setIsDownloading(false);
+         setFileDownloadingProgress(0);
      }
   const renderDMMessages = (message) => (
     <div className={`${message.sender === selectedChatData._id ? "text-left":"text-right"}`}>

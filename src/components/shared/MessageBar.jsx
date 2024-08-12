@@ -13,9 +13,9 @@ const MessageBar = () => {
     const emojiRef = useRef();
     const fileInputRef = useRef();
     const [emojiPickerOpen,setEmojiPickerOpen] = useState(false)
-    const {selectedChatType,selectedChatData,userInfo} = useAppStore() 
+    const {selectedChatType,selectedChatData,userInfo,setIsUploading} = useAppStore() 
     const socket = useSocket()
-    const {upload,isSuccess} = useUploadImage()
+    const {upload} = useUploadImage()
     useEffect(()=>{
     function handleCLickSideOut(event){
         if(emojiRef.current && !emojiRef.current.contains(event.target)){
@@ -55,20 +55,8 @@ const MessageBar = () => {
        if(file){
         const formData =  new FormData()
         formData.append("file",file)
-        const response =  await upload(formData)
-        console.log(isSuccess)
-        if(isSuccess){
-           if(selectedChatType === "contact"){
-             socket.emit("sendMessage",{
-                 sender:userInfo.id,
-                 content:undefined,
-                 recipient:selectedChatData._id,
-                 messageType:"file",
-                 fileUrl:response.filePath
-             })
-           }
-        }
-
+          setIsUploading(true)
+          await upload(formData)
        }
     }
     
